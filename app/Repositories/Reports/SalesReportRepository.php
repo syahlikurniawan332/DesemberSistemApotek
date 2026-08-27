@@ -21,7 +21,7 @@ class SalesReportRepository
     {
         $today = Transaction::thisDay()->sum('total');
         $thisMonth = Transaction::thisMonth()->sum('total');
-        $last7Days = Transaction::whereDate('created_at', '>=', now()->subDays(7))
+        $last7Days = Transaction::where('created_at', '>=', now()->subDays(7)->startOfDay())
             ->sum('total');
 
         return [
@@ -43,7 +43,7 @@ class SalesReportRepository
             DATE(created_at) as date,
             SUM(total) as total
         ")
-            ->whereDate('created_at', '>=', $startDate)
+            ->where('created_at', '>=', $startDate)
             ->groupBy('date')
             ->orderBy('date')
             ->get()

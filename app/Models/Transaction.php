@@ -42,13 +42,19 @@ class Transaction extends Model
     // scope transaksi hari ini 
     public function scopeThisDay(Builder $query)
     {
-        return $query->whereDate('created_at', today());
+        return $query->whereBetween('created_at', [
+            today()->startOfDay(),
+            today()->endOfDay(),
+        ]);
     }
 
     // scope transaksi bulan ini
     public function scopeThisMonth(Builder $query)
     {
-        return $query->whereMonth('created_at', now()->month);
+        return $query->whereBetween('created_at', [
+            now()->startOfMonth(),
+            now()->endOfMonth(),
+        ]);
     }
 
     // scope transaksi total minimal 
