@@ -140,7 +140,7 @@
                                 </div>
                             </div>
                             @empty
-                            <p class="text-gray-500 text-center py-4">Tidak ada batch kadaluarsa dalam 60 hari</p>
+                            <p class="text-gray-500 text-center py-4">Tidak ada batch yang akan kedaluwarsa dalam 60 hari</p>
                             @endforelse
                         </div>
                     </div>

@@ -134,8 +134,7 @@ class TransactionDetailService
 
                 // 3. Ambil batch FIFO (expired terdekat)
                 $batches = Batch::where('medicine_id', $medicineId)
-                    ->where('stok', '>', 0)
-                    ->whereDate('tanggal_kadaluarsa', '>=', today())
+                    ->sellable()
                     ->orderBy('tanggal_kadaluarsa')
                     ->lockForUpdate()
                     ->get();
@@ -187,12 +186,10 @@ class TransactionDetailService
     public function getAvailableMedicines()
     {
         return Medicine::whereHas('batches', function ($query) {
-            $query->where('stok', '>', 0)
-                ->whereDate('tanggal_kadaluarsa', '>=', today());
+            $query->sellable();
         })
             ->with(['batches' => function ($query) {
-                $query->where('stok', '>', 0)
-                    ->whereDate('tanggal_kadaluarsa', '>=', today())
+                $query->sellable()
                     ->orderBy('tanggal_kadaluarsa')
                     ->select('medicine_id', 'harga_jual', 'stok', 'no_batch');
             }])

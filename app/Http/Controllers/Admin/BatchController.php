@@ -18,11 +18,11 @@ class BatchController extends Controller
     public function store(Request $request, Medicine $medicine)
     {
         $validated = $request->validate([
-            'tanggal_masuk' => ['required', 'date'],
-            'tanggal_kadaluarsa' => ['required', 'date', 'after:tanggal_masuk'],
-            'stok' => ['required', 'integer', 'min:0'],
+            'tanggal_masuk' => ['required', 'date', 'before_or_equal:today'],
+            'tanggal_kadaluarsa' => ['required', 'date', 'after:tanggal_masuk', 'after_or_equal:today'],
+            'stok' => ['required', 'integer', 'min:1'],
             'harga_beli' => ['required', 'numeric', 'min:0'],
-            'harga_jual' => ['required', 'numeric', 'min:0'],
+            'harga_jual' => ['required', 'numeric', 'gte:harga_beli'],
         ]);
 
         $medicine->batches()->create([
@@ -65,11 +65,11 @@ class BatchController extends Controller
         }
 
         $validated = $request->validate([
-            'tanggal_masuk' => ['required', 'date'],
-            'tanggal_kadaluarsa' => ['required', 'date', 'after:tanggal_masuk'],
+            'tanggal_masuk' => ['required', 'date', 'before_or_equal:today'],
+            'tanggal_kadaluarsa' => ['required', 'date', 'after:tanggal_masuk', 'after_or_equal:today'],
             'stok' => ['required', 'integer', 'min:0'],
             'harga_beli' => ['required', 'numeric', 'min:0'],
-            'harga_jual' => ['required', 'numeric', 'min:0'],
+            'harga_jual' => ['required', 'numeric', 'gte:harga_beli'],
         ]);
 
         $batch->update($validated);

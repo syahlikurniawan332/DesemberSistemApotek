@@ -56,7 +56,9 @@ class Medicine extends Model
     public function scopeLowStock(Builder $query)
     {
         return $query
-            ->withSum('batches as total_stok', 'stok')
+            ->withSum([
+                'batches as total_stok' => fn ($batchQuery) => $batchQuery->sellable(),
+            ], 'stok')
             ->havingRaw('COALESCE(total_stok, 0) <= min_stok');
     }
 
@@ -87,8 +89,10 @@ class Medicine extends Model
     public function scopeLowStockThreshold(Builder $query, int $threshold = 20)
     {
         return $query
-            ->withSum('batches as total_stok', 'stok')
-            ->having('total_stok', '<', DB::raw('min_stok'));
+            ->withSum([
+                'batches as total_stok' => fn ($batchQuery) => $batchQuery->sellable(),
+            ], 'stok')
+            ->havingRaw('COALESCE(total_stok, 0) < min_stok');
     }
 
     // scope untuk fitur table di master data 
@@ -104,7 +108,9 @@ class Medicine extends Model
                 'satuan',
                 'min_stok',
             ])
-            ->withSum('batches as total_stok', 'stok');
+            ->withSum([
+                'batches as total_stok' => fn ($batchQuery) => $batchQuery->sellable(),
+            ], 'stok');
     }
 
     public function getStockStatusAttribute(): string

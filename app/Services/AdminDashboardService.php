@@ -37,11 +37,14 @@ class AdminDashboardService
     protected function getBatchStats(): array
     {
         return [
-            'batch_tersedia' => Batch::hasStock()->count(),
-            'expired' => Batch::expiringSoon(30)->count(),
+            'batch_tersedia' => Batch::sellable()->count(),
+            'expired' => Batch::expired()->count(),
+            'expiring_soon' => Batch::expiringWithinDays(30)->count(),
             'batch_bulan_ini' => Batch::thisMonth()->count(),
-            'total_stok' => Batch::hasStock()->sum('stok'),
-            'total_value' => Batch::hasStock()->sum('harga_beli'),
+            'total_stok' => Batch::sellable()->sum('stok'),
+            'total_value' => Batch::sellable()
+                ->selectRaw('COALESCE(SUM(stok * harga_beli), 0) as total_value')
+                ->value('total_value'),
         ];
     }
 

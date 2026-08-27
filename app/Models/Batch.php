@@ -64,23 +64,32 @@ class Batch extends Model
         return 'BATCH-' . str_pad($number, 4, '0', STR_PAD_LEFT) . $letters;
     }
 
-    // scope cek tanggal kadaluarsa
-    public function scopeExpiringSoon(Builder $query, int $days = 30)
+    public function scopeExpired(Builder $query)
     {
-        $date = now()->addDays($days);
-        return $query->where('tanggal_kadaluarsa', '<=', $date);
+        return $query
+            ->whereDate('tanggal_kadaluarsa', '<', today())
+            ->where('stok', '>', 0);
     }
 
     // scope untuk batch masuk bulan ini 
     public function scopeThisMonth(Builder $query)
     {
-        return $query->whereMonth('tanggal_masuk', now()->month);
+        return $query
+            ->whereMonth('tanggal_masuk', now()->month)
+            ->whereYear('tanggal_masuk', now()->year);
     }
 
     // scope untuk stok tersedia
     public function scopeHasStock(Builder $query)
     {
         return $query->where('stok', '>', 0);
+    }
+
+    public function scopeSellable(Builder $query)
+    {
+        return $query
+            ->hasStock()
+            ->whereDate('tanggal_kadaluarsa', '>=', today());
     }
 
     // scope relasi ke medicine 
@@ -92,7 +101,11 @@ class Batch extends Model
     // scope untuk batch yang akan kadaluarsa dalam beberapa hari dan masih ada stok
     public function scopeExpiringWithinDays(Builder $query, int $days = 60)
     {
-        return $query->where('tanggal_kadaluarsa', '<=', now()->addDays($days))
+        return $query
+            ->whereBetween('tanggal_kadaluarsa', [
+                today()->toDateString(),
+                today()->addDays($days)->toDateString(),
+            ])
             ->where('stok', '>', 0);
     }
 

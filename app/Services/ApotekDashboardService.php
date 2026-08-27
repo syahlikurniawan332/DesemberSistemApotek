@@ -28,8 +28,10 @@ class ApotekDashboardService
 
     public function getLowStockMedicinesTable()
     {
-        return Medicine::withSum('batches as total_stok', 'stok')
-            ->having('total_stok', '<', DB::raw('min_stok'))
+        return Medicine::withSum([
+            'batches as total_stok' => fn ($batchQuery) => $batchQuery->sellable(),
+        ], 'stok')
+            ->havingRaw('COALESCE(total_stok, 0) <= min_stok')
             ->orderBy('total_stok')
             ->limit(5)
             ->get();

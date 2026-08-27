@@ -53,7 +53,10 @@
                         </div>
                         <div class="mt-2">
                             <p class="text-xs text-gray-500">
-                                {{ $batches['expired'] }} kadaluarsa 30 hari
+                                {{ $batches['expiring_soon'] }} akan kedaluwarsa dalam 30 hari
+                                @if ($batches['expired'] > 0)
+                                    · <span class="text-red-600">{{ $batches['expired'] }} sudah kedaluwarsa</span>
+                                @endif
                             </p>
                         </div>
                     </div>
