@@ -55,7 +55,7 @@
                             <p class="text-xs text-gray-500">
                                 {{ $batches['expiring_soon'] }} akan kedaluwarsa dalam 30 hari
                                 @if ($batches['expired'] > 0)
-                                    · <span class="text-red-600">{{ $batches['expired'] }} sudah kedaluwarsa</span>
+                                · <span class="text-red-600">{{ $batches['expired'] }} sudah kedaluwarsa</span>
                                 @endif
                             </p>
                         </div>
@@ -131,78 +131,12 @@
         </div>
 
         <script>
-            const salesData = @json($last7DaysSales);
-            const topMedicines = @json($topMedicines);
-
-            const labels = salesData.map(item => item.date);
-            const totals = salesData.map(item => item.total);
-            const ctx = document.getElementById('sales7DaysChart').getContext('2d');
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Total Penjualan',
-                        data: totals,
-                        borderWidth: 2,
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        tension: 0.3,
-                        fill: true,
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                        }
-                    }
-                }
-            });
-
-            const names = topMedicines.map(item => item.nama + " (" + item.kategori + ")");
-            const total_tops = topMedicines.map(item => item.total_terjual);
-
-            const ctxTop = document.getElementById('topMedicinesChart').getContext('2d');
-
-            new Chart(ctxTop, {
-                type: 'bar',
-                data: {
-                    labels: names,
-                    datasets: [{
-                        label: 'Jumlah Terjual',
-                        data: total_tops,
-                        borderWidth: 1,
-                        backgroundColor: [
-                            'rgba(75, 192, 192, 0.4)',
-                            'rgba(54, 162, 235, 0.4)',
-                            'rgba(255, 159, 64, 0.4)',
-                            'rgba(153, 102, 255, 0.4)',
-                            'rgba(255, 99, 132, 0.4)',
-                        ],
-                        borderColor: [
-                            'rgb(75, 192, 192)',
-                            'rgb(54, 162, 235)',
-                            'rgb(255, 159, 64)',
-                            'rgb(153, 102, 255)',
-                            'rgb(255, 99, 132)',
-                        ],
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 0
-                            }
-                        }
-                    }
-                }
-            });
+            window.adminDashboardData = {
+                sales: @json($last7DaysSales),
+                topMedicines: @json($topMedicines),
+            };
         </script>
+
+        @vite('resources/js/admin-dashboard.js')
 
 </x-layouts.app>
