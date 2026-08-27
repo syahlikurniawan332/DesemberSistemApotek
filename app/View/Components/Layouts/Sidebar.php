@@ -4,6 +4,7 @@ namespace App\View\Components\Layouts;
 
 use Illuminate\View\Component;
 use App\Models\Medicine;
+use Illuminate\Support\Facades\Cache;
 
 class Sidebar extends Component
 {
@@ -11,10 +12,11 @@ class Sidebar extends Component
 
     public function __construct()
     {
-        $this->stokRendah = Medicine::withSum('batches', 'stok')
-            ->get()
-            ->where('batches_sum_stok', '<=', 10)
-            ->count();
+        $this->stokRendah = Cache::remember(
+            'sidebar.low_stock_count',
+            now()->addSeconds(30),
+            fn () => Medicine::lowStock()->count(),
+        );
     }
 
     public function render()

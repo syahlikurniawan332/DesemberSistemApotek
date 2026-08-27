@@ -85,10 +85,17 @@
                                 <h3 class="text-xl font-bold text-gray-900">Informasi Pribadi</h3>
                                 <p class="text-gray-600 text-sm mt-1">Detail informasi akun Anda</p>
                             </div>
-                            <a href="{{ route('admin.usermanagemen.edit', auth()->user()) }}"
+                            @if ($user->role === 'admin')
+                            <a href="{{ route('admin.usermanagemen.edit', $user) }}"
                                 class="mt-3 sm:mt-0 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md flex items-center">
                                 <i class="fas fa-edit mr-2"></i> Edit Profil
                             </a>
+                            @else
+                            <a href="#edit-profile"
+                                class="mt-3 sm:mt-0 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md flex items-center">
+                                <i class="fas fa-edit mr-2"></i> Edit Profil
+                            </a>
+                            @endif
                         </div>
 
                         <!-- Grid Informasi -->
@@ -171,12 +178,12 @@
                             <h4 class="text-lg font-semibold text-gray-900 mb-6">Statistik Akun</h4>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div class="text-center p-4 bg-blue-50 rounded-xl">
-                                    <div class="text-2xl font-bold text-blue-600">{{ $user->transactions->count() ?? 0 }}</div>
+                                    <div class="text-2xl font-bold text-blue-600">{{ $user->transactions_count }}</div>
                                     <div class="text-sm text-gray-600 mt-1">Total Transaksi</div>
                                 </div>
 
                                 <div class="text-center p-4 bg-green-50 rounded-xl">
-                                    <div class="text-2xl font-bold text-green-600">{{ $user->batches->count() ?? 0 }}</div>
+                                    <div class="text-2xl font-bold text-green-600">{{ $user->batches_count }}</div>
                                     <div class="text-sm text-gray-600 mt-1">Batch Ditambahkan</div>
                                 </div>
 
@@ -192,6 +199,16 @@
                             </div>
                         </div>
                     </div>
+
+                    @if ($user->role === 'apoteker')
+                    <div id="edit-profile" class="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-6 scroll-mt-6">
+                        @include('profile.partials.update-profile-information-form')
+                    </div>
+
+                    <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        @include('profile.partials.update-password-form')
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>

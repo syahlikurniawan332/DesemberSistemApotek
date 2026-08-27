@@ -43,7 +43,6 @@ class TransactionController extends Controller
     public function create()
     {
         return view('apoteker.transactions.create', [
-            'transactionCode' => $this->transactionService->generateTransactionCode(),
             'medicines'       => $this->transactionService->getAvailableMedicines(),
         ]);
     }

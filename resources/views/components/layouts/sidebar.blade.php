@@ -51,7 +51,7 @@
             </a>
 
             <a href="{{ route('admin.usermanagemen.index') }}"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200{{ request()->routeIs('admin.usermanagemen.*') 
+                class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.usermanagemen.*')
                 ? 'bg-green-50 text-green-700 border-r-4 border-green-600 font-semibold'
                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                 <div class="w-6 h-6 flex items-center justify-center">
@@ -64,7 +64,7 @@
             </a>
 
             <a href="{{ route('admin.reports.index') }}"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200{{ request()->routeIs('admin.reports.*') 
+                class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.reports.*')
                 ? 'bg-green-50 text-green-700 border-r-4 border-green-600 font-semibold'
                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                 <div class="w-6 h-6 flex items-center justify-center">

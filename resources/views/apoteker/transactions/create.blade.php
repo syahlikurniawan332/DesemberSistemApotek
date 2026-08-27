@@ -15,6 +15,17 @@
             </div>
             @endif
 
+            @if($errors->any())
+            <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded" role="alert">
+                <p class="font-semibold">Periksa kembali data transaksi:</p>
+                <ul class="mt-2 list-disc list-inside text-sm">
+                    @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
 
@@ -27,9 +38,9 @@
                                 Kode Transaksi
                             </label>
                             <input type="text" readonly
-                                value="{{ $transactionCode }}"
+                                value="Otomatis saat transaksi disimpan"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 font-bold">
-                            <p class="text-sm text-gray-500 mt-1">Kode otomatis dibuat sistem</p>
+                            <p class="text-sm text-gray-500 mt-1">Kode final dibuat oleh server agar tetap unik.</p>
                         </div>
 
                         <!-- Medicines Container untuk multiple items -->
@@ -249,13 +260,13 @@ function calculateSubtotal(quantity, batches) {
     let remaining = quantity;
     let subtotal = 0;
 
-    // Urutkan batch berdasarkan tanggal masuk (lama → baru)
-    batches.sort((a, b) => new Date(a.tanggal_masuk) - new Date(b.tanggal_masuk));
+    // Samakan urutan dengan backend: kedaluwarsa terdekat dijual lebih dahulu (FEFO).
+    batches.sort((a, b) => new Date(a.tanggal_kadaluarsa) - new Date(b.tanggal_kadaluarsa));
 
     for (const batch of batches) {
         if (remaining <= 0) break;
         const take = Math.min(remaining, batch.stok);
-        subtotal += take * batch.harga_jual;
+        subtotal += take * parseFloat(batch.harga_jual);
         remaining -= take;
     }
 
