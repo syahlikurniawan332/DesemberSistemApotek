@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Medicine;
 use App\Models\Transaction;
 use App\Services\TransactionDetailService;
+use DomainException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class TransactionController extends Controller
 {
@@ -48,27 +51,35 @@ class TransactionController extends Controller
     // Simpan transaksi
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'medicines'                     => 'required|array|min:1',
-            'medicines.*.medicine_id'       => 'required|integer',
+            'medicines.*.medicine_id'       => 'required|integer|distinct|exists:medicines,id',
             'medicines.*.quantity'          => 'required|integer|min:1',
         ]);
 
         try {
-            $transaction = $this->transactionService->store($request->all());
+            $transaction = $this->transactionService->store($validated);
 
             return redirect()
                 ->route('apoteker.transactions.show', $transaction->id)
                 ->with('success', 'Transaksi berhasil disimpan');
-        } catch (\Exception $e) {
+        } catch (DomainException $e) {
             return back()
                 ->withInput()
                 ->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()
+                ->withInput()
+                ->with('error', 'Transaksi gagal disimpan. Silakan coba lagi.');
         }
     }
 
     public function edit(Transaction $transaction, TransactionDetailService $service)
     {
+        $this->ensureTransactionOwner($transaction);
+
         $transaction = $service->getTransactionForEdit($transaction);
 
         $medicines = Medicine::with('batches')->get();
@@ -81,19 +92,32 @@ class TransactionController extends Controller
 
     public function update(Request $request, Transaction $transaction, TransactionDetailService $service)
     {
-        $request->validate([
+        $this->ensureTransactionOwner($transaction);
+
+        $validated = $request->validate([
             'medicines' => 'required|array|min:1',
-            'medicines.*.batch_id' => 'required|exists:batches,id',
+            'medicines.*.batch_id' => 'required|integer|distinct|exists:batches,id',
             'medicines.*.quantity' => 'required|integer|min:1',
         ]);
 
         try {
-            $service->update($transaction, $request->all());
+            $service->update($transaction, $validated);
             return redirect()
                 ->route('apoteker.transactions.show', $transaction)
                 ->with('success', 'Transaksi berhasil diperbarui');
-        } catch (\Exception $e) {
+        } catch (DomainException $e) {
             return back()->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()
+                ->withInput()
+                ->with('error', 'Transaksi gagal diperbarui. Silakan coba lagi.');
         }
+    }
+
+    private function ensureTransactionOwner(Transaction $transaction): void
+    {
+        abort_unless($transaction->user_id === Auth::id(), 404);
     }
 }

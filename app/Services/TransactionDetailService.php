@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Exception;
+use DomainException;
 
 class TransactionDetailService
 {
@@ -99,6 +99,7 @@ class TransactionDetailService
             ])
 
             // Cari transaksi, gagal = 404
+            ->byCurrentUser()
             ->findOrFail($transactionId);
     }
 
@@ -128,18 +129,19 @@ class TransactionDetailService
                 $quantityNeeded = (int) $item['quantity'];
 
                 if ($quantityNeeded <= 0) {
-                    throw new Exception('Jumlah obat tidak valid');
+                    throw new DomainException('Jumlah obat tidak valid');
                 }
 
                 // 3. Ambil batch FIFO (expired terdekat)
                 $batches = Batch::where('medicine_id', $medicineId)
                     ->where('stok', '>', 0)
+                    ->whereDate('tanggal_kadaluarsa', '>=', today())
                     ->orderBy('tanggal_kadaluarsa')
                     ->lockForUpdate()
                     ->get();
 
                 if ($batches->isEmpty()) {
-                    throw new Exception('Stok obat tidak tersedia');
+                    throw new DomainException('Stok obat tidak tersedia');
                 }
 
                 // 4. Kurangi stok per batch
@@ -169,7 +171,7 @@ class TransactionDetailService
 
                 // Jika stok tidak cukup
                 if ($quantityNeeded > 0) {
-                    throw new Exception('Stok obat tidak mencukupi');
+                    throw new DomainException('Stok obat tidak mencukupi');
                 }
             }
 
@@ -185,10 +187,12 @@ class TransactionDetailService
     public function getAvailableMedicines()
     {
         return Medicine::whereHas('batches', function ($query) {
-            $query->where('stok', '>', 0);
+            $query->where('stok', '>', 0)
+                ->whereDate('tanggal_kadaluarsa', '>=', today());
         })
             ->with(['batches' => function ($query) {
                 $query->where('stok', '>', 0)
+                    ->whereDate('tanggal_kadaluarsa', '>=', today())
                     ->orderBy('tanggal_kadaluarsa')
                     ->select('medicine_id', 'harga_jual', 'stok', 'no_batch');
             }])
@@ -209,9 +213,22 @@ class TransactionDetailService
     public function update(Transaction $transaction, array $data)
     {
         return DB::transaction(function () use ($transaction, $data) {
+            $transaction = Transaction::query()
+                ->whereKey($transaction->id)
+                ->where('user_id', Auth::id())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $oldDetails = $transaction->transactionDetails()
+                ->with('batch')
+                ->lockForUpdate()
+                ->get();
+
+            $oldBatchIds = $oldDetails->pluck('batch_id')->unique()->values();
+            Batch::whereKey($oldBatchIds->all())->lockForUpdate()->get();
 
             // 1️⃣ Kembalikan stok lama
-            foreach ($transaction->transactionDetails as $detail) {
+            foreach ($oldDetails as $detail) {
                 $detail->batch->increment('stok', $detail->jumlah);
             }
 
@@ -225,8 +242,12 @@ class TransactionDetailService
 
                 $batch = Batch::lockForUpdate()->findOrFail($item['batch_id']);
 
+                if ($batch->tanggal_kadaluarsa->isBefore(today())) {
+                    throw new DomainException("Batch {$batch->no_batch} sudah kedaluwarsa");
+                }
+
                 if ($batch->stok < $item['quantity']) {
-                    throw new \Exception("Stok {$batch->medicine->nama} tidak mencukupi");
+                    throw new DomainException("Stok {$batch->medicine->nama} tidak mencukupi");
                 }
 
                 $subtotal = $batch->harga_jual * $item['quantity'];
