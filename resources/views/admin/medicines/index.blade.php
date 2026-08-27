@@ -1,6 +1,6 @@
 <x-layouts.app>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 Daftar Obat
             </h2>
@@ -27,7 +27,30 @@
             </div>
             @endif
 
-            {{ $medicines->links() }}
+            <form method="GET" action="{{ route('admin.medicines.index') }}"
+                class="mb-5 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_220px_auto] gap-3">
+                <label class="sr-only" for="medicine-search">Cari obat</label>
+                <input id="medicine-search" name="q" value="{{ request('q') }}"
+                    placeholder="Cari kode atau nama obat..."
+                    class="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500">
+
+                <label class="sr-only" for="medicine-category">Kategori</label>
+                <select id="medicine-category" name="category"
+                    class="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500">
+                    <option value="">Semua kategori</option>
+                    @foreach ($categories as $category)
+                    <option value="{{ $category }}" @selected(request('category') === $category)>{{ $category }}</option>
+                    @endforeach
+                </select>
+
+                <div class="flex gap-2">
+                    <button class="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900">Cari</button>
+                    @if (request()->hasAny(['q', 'category']))
+                    <a href="{{ route('admin.medicines.index') }}"
+                        class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Reset</a>
+                    @endif
+                </div>
+            </form>
 
             {{-- Table --}}
             <div class="bg-white rounded-xl shadow overflow-hidden">

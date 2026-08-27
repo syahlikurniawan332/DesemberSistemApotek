@@ -1,6 +1,6 @@
 <x-layouts.app>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 User Management
             </h2>
@@ -30,6 +30,26 @@
             </div>
             @endif
 
+            <form method="GET" action="{{ route('admin.usermanagemen.index') }}"
+                class="mb-5 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_180px_auto] gap-3">
+                <input name="q" value="{{ request('q') }}" placeholder="Cari nama atau email..."
+                    aria-label="Cari pengguna"
+                    class="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500">
+                <select name="role" aria-label="Filter role"
+                    class="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500">
+                    <option value="">Semua role</option>
+                    <option value="admin" @selected(request('role') === 'admin')>Admin</option>
+                    <option value="apoteker" @selected(request('role') === 'apoteker')>Apoteker</option>
+                </select>
+                <div class="flex gap-2">
+                    <button class="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900">Cari</button>
+                    @if (request()->hasAny(['q', 'role']))
+                    <a href="{{ route('admin.usermanagemen.index') }}"
+                        class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Reset</a>
+                    @endif
+                </div>
+            </form>
+
             {{-- NOTIFIKASI ERROR --}}
             @if (session('error'))
             <div class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
@@ -49,6 +69,7 @@
             <div class="bg-white overflow-hidden shadow-lg sm:rounded-lg">
                 <div class="p-6">
 
+                    <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
 
                         <thead class="bg-gray-50">
@@ -62,7 +83,7 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($users as $user)
+                            @forelse($users as $user)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ $user->id }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -95,9 +116,16 @@
                                     </form>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                                    Pengguna tidak ditemukan.
+                                </td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
+                    </div>
 
                     {{ $users->links() }}
 

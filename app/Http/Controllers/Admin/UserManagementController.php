@@ -11,11 +11,34 @@ use Illuminate\Support\Facades\Hash;
 
 class UserManagementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::select('id', 'name', 'email', 'role', 'avatar')
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'role' => ['nullable', 'in:admin,apoteker'],
+        ]);
+
+        $query = User::query()
+            ->select('id', 'name', 'email', 'role', 'avatar');
+
+        if (! empty($filters['q'])) {
+            $search = $filters['q'];
+
+            $query->where(function ($subquery) use ($search) {
+                $subquery
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if (! empty($filters['role'])) {
+            $query->where('role', $filters['role']);
+        }
+
+        $users = $query
             ->latest()
-            ->paginate(5);
+            ->paginate(10)
+            ->withQueryString();
 
         return view('admin.usermanagemen.index', compact('users'));
     }

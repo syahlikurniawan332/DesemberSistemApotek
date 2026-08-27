@@ -11,10 +11,36 @@ class MedicineController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $medicines = Medicine::forMasterTable()->latest()->paginate(10);
-        return view('admin.medicines.index', compact('medicines'));
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'category' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $medicines = Medicine::forMasterTable()
+            ->when($filters['q'] ?? null, function ($query, $search) {
+                $query->where(function ($subquery) use ($search) {
+                    $subquery
+                        ->where('kode', 'like', "%{$search}%")
+                        ->orWhere('nama', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $filters['category'] ?? null,
+                fn ($query, $category) => $query->where('kategori', $category),
+            )
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        $categories = Medicine::query()
+            ->select('kategori')
+            ->distinct()
+            ->orderBy('kategori')
+            ->pluck('kategori');
+
+        return view('admin.medicines.index', compact('medicines', 'categories'));
     }
 
     public function create()
