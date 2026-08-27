@@ -202,8 +202,9 @@
 
 
     <script>
-        window.topObatRawData = JSON.parse('{!! addslashes(json_encode($topObat)) !!}');
-        window.reportChartData = JSON.parse('{!! addslashes(json_encode($omzetChart)) !!}');
+        window.topObatRawData = @json($topObat);
+        window.reportChartData = @json($omzetChart);
     </script>
+    @vite('resources/js/reports.js')
 
 </x-layouts.app>

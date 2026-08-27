@@ -33,7 +33,7 @@ class UserManagementController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:admin,apoteker',
-            'avatar' => 'nullable|image|mimes:jpg,png,webp,jpeg,gif|max:2048',
+            'avatar' => 'nullable|image|mimes:jpg,png,webp,jpeg|max:1024|dimensions:max_width=1500,max_height=1500',
         ]);
 
         if ($request->hasFile('avatar')) {
@@ -61,7 +61,7 @@ class UserManagementController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|in:admin,apoteker',
-            'avatar' => 'nullable|image|mimes:jpg,png,webp,jpeg,gif|max:2048',
+            'avatar' => 'nullable|image|mimes:jpg,png,webp,jpeg|max:1024|dimensions:max_width=1500,max_height=1500',
         ]);
 
         if ($request->hasFile('avatar')) {
