@@ -57,9 +57,17 @@ class Medicine extends Model
     {
         return $query
             ->withSum([
-                'batches as total_stok' => fn ($batchQuery) => $batchQuery->sellable(),
+                'batches as total_stok' => fn($batchQuery) => $batchQuery->sellable(),
             ], 'stok')
-            ->havingRaw('COALESCE(total_stok, 0) <= min_stok');
+            ->whereRaw(
+                '(SELECT COALESCE(SUM(batches.stok), 0)
+                FROM batches
+                WHERE batches.medicine_id = medicines.id
+                  AND batches.stok > 0
+                  AND batches.tanggal_kadaluarsa >= ?
+            ) <= medicines.min_stok',
+                [today()->toDateString()],
+            );
     }
 
 
@@ -90,9 +98,17 @@ class Medicine extends Model
     {
         return $query
             ->withSum([
-                'batches as total_stok' => fn ($batchQuery) => $batchQuery->sellable(),
+                'batches as total_stok' => fn($batchQuery) => $batchQuery->sellable(),
             ], 'stok')
-            ->havingRaw('COALESCE(total_stok, 0) < min_stok');
+            ->whereRaw(
+                '(SELECT COALESCE(SUM(batches.stok), 0)
+                FROM batches
+                WHERE batches.medicine_id = medicines.id
+                  AND batches.stok > 0
+                  AND batches.tanggal_kadaluarsa >= ?
+            ) < ?',
+                [today()->toDateString(), $threshold],
+            );
     }
 
     // scope untuk fitur table di master data 
@@ -109,7 +125,7 @@ class Medicine extends Model
                 'min_stok',
             ])
             ->withSum([
-                'batches as total_stok' => fn ($batchQuery) => $batchQuery->sellable(),
+                'batches as total_stok' => fn($batchQuery) => $batchQuery->sellable(),
             ], 'stok');
     }
 
