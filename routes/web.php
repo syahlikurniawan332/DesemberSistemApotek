@@ -10,7 +10,9 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Apoteker\TransactionController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return auth()->check()
+        ? redirect()->route('dashboard')
+        : redirect()->route('login');
 });
 
 require __DIR__ . '/auth.php';
